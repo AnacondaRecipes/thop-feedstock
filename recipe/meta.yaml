@@ -1,45 +1,62 @@
-{% set name = "<PLEASE ADD PKG NAME>" %}
-{% set version = "<PLEASE ADD PKG VERSION>" %}
+{% set name = "thop" %}
+{% set version = "0.1.1.post2209072238" %}
+{% set commit_id = "43c064afb71383501e41eaef9e8c8407265cf77f" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: <sha256>
+  - url: https://pypi.io/packages/py3/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}-py3-none-any.whl
+    sha256: 01473c225231927d2ad718351f78ebf7cffe6af3bed464c4f1ba1ef0f7cdda27
+  # use github raw file for license file (not included in the wheel file)
+  - url: https://raw.githubusercontent.com/Lyken17/pytorch-OpCounter/{{ commit_id }}/LICENSE
+    sha256: 36f577ad288f1beae8188b6ec09808eaed278c08b8284bacc694bb56ffbf3dfc
+  # use github archive release for tests
+  - url: https://github.com/Lyken17/pytorch-OpCounter/archive/{{ commit_id }}.tar.gz
+    sha256: cbda9dc83ad9b78a9fbc8d89f8f1fb1da8ca284b39faab3e9ed697fb2bee909f
+    folder: gh_src
 
 build:
   number: 0
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  # install the wheel,because the sdist not available
+  script: {{ PYTHON }} -m pip install ./{{ name }}-{{ version }}-py3-none-any.whl -vv --no-deps --no-build-isolation
   skip: True  # [py<38]
 
 requirements:
   host:
     - python
     - pip
+    - setuptools
+    - wheel
   run:
     - python
+    - pytorch
 
 test:
   imports:
-    - {{ name.replace('-', '.') }}
+    - thop
   requires:
     - pip
+    - pytest
+  source_files:
+    - gh_src/tests
   commands:
     - pip check
+    - cd gh_src
+    - pytest tests
 
 about:
-  home: <PLEASE ADD HOME URL>
-  summary: <PLEASE ADD SUMMARY>
+  home: https://github.com/Lyken17/pytorch-OpCounter
+  summary: Count the MACs / FLOPs of your PyTorch model.
   description: |
-    <PLEASE ADD DESCRIPTION>
-  license: <PLEASE ADD LICENSE>
-  license_family: <PLEASE ADD LICENSE_FAMILY>
-  license_file: <PLEASE_ADD_LICENSE_FILE>
-  dev_url: <PLEASE ADD DEV URL>
-  doc_url: <PLEASE ADD DOC URL>
+    Count the MACs / FLOPs of your PyTorch model.
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  dev_url: https://github.com/Lyken17/pytorch-OpCounter
+  doc_url: https://github.com/Lyken17/pytorch-OpCounter
 
 extra:
   recipe-maintainers:
-    - Jrice1317
+    - lorepirri

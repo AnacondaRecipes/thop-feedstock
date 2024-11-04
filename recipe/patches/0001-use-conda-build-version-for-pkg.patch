@@ -1,0 +1,43 @@
+From bd8bdee45c2584f3633e2534979657f659546e9f Mon Sep 17 00:00:00 2001
+From: Lorenzo Pirritano <lpirritano@anaconda.com>
+Date: Mon, 4 Nov 2024 14:22:12 +0100
+Subject: [PATCH] use conda build version for pkg
+
+The version is generated with the timestamp as suffix each time
+setup.py is run (every time we build the package).
+
+With this patch we override the package version to the conda build
+one (from the environment variable PKG_VERSION).
+
+---
+ setup.py | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index 100bd16..d14cace 100644
+--- a/setup.py
++++ b/setup.py
+@@ -8,8 +8,8 @@ from setuptools.command.install import install
+ 
+ readme = open("README.md").read()
+ 
+-fp = open("thop/__version__.py", "r").read()
+-VERSION = eval(fp.strip().split()[-1])
++# fp = open("thop/__version__.py", "r").read()
++# VERSION = eval(fp.strip().split()[-1])
+ 
+ requirements = [
+     "torch",
+@@ -18,7 +18,8 @@ requirements = [
+ # import subprocess
+ # commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True).decode('UTF-8').rstrip()
+ # VERSION += "_" + str(int(commit_hash, 16))[:8]
+-VERSION += "_" + datetime.datetime.now().strftime("%Y%m%d%H%M")[2:]
++# VERSION += "_" + datetime.datetime.now().strftime("%Y%m%d%H%M")[2:]
++VERSION = os.environ['PKG_VERSION']
+ print(VERSION)
+ 
+ setup(
+-- 
+2.39.1
+

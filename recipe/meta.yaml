@@ -7,23 +7,21 @@ package:
   version: {{ version }}
 
 source:
-  - url: https://pypi.io/packages/py3/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}-py3-none-any.whl
-    sha256: 01473c225231927d2ad718351f78ebf7cffe6af3bed464c4f1ba1ef0f7cdda27
-  # use github raw file for license file (not included in the wheel file)
-  - url: https://raw.githubusercontent.com/Lyken17/pytorch-OpCounter/{{ commit_id }}/LICENSE
-    sha256: 36f577ad288f1beae8188b6ec09808eaed278c08b8284bacc694bb56ffbf3dfc
-  # use github archive release for tests
-  - url: https://github.com/Lyken17/pytorch-OpCounter/archive/{{ commit_id }}.tar.gz
-    sha256: cbda9dc83ad9b78a9fbc8d89f8f1fb1da8ca284b39faab3e9ed697fb2bee909f
-    folder: gh_src
+  # use github archive release for tests, LICENSE, and because there is no sdist on PyPi
+  url: https://github.com/Lyken17/pytorch-OpCounter/archive/{{ commit_id }}.tar.gz
+  sha256: cbda9dc83ad9b78a9fbc8d89f8f1fb1da8ca284b39faab3e9ed697fb2bee909f
+  patches:
+    - patches/0001-use-conda-build-version-for-pkg.patch
 
 build:
   number: 0
-  # install the wheel,because the sdist not available
-  script: {{ PYTHON }} -m pip install ./{{ name }}-{{ version }}-py3-none-any.whl -vv --no-deps --no-build-isolation
   skip: True  # [py<38]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
 
 requirements:
+  build:
+    - patch     # [not win]
+    - m2-patch  # [win]
   host:
     - python
     - pip
@@ -40,10 +38,11 @@ test:
     - pip
     - pytest
   source_files:
-    - gh_src/tests
+    - tests
   commands:
     - pip check
-    - cd gh_src
+    # check that pip gets the correct version
+    - python -c "from importlib.metadata import version; assert(version('{{ name }}')=='{{ version }}')"
     - pytest tests
 
 about:
